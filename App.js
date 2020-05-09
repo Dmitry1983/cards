@@ -22,6 +22,9 @@ import Screen15 from './src/screens/Screen15'
 import Screen16 from './src/screens/Screen16'
 import ScreenTY from './src/screens/ScreenTY'
 import ScreenPP from './src/screens/ScreenPP'
+import ScreenWV from './src/screens/ScreenWV'
+import ScreenStart from './src/screens/ScreenStart'
+
 // import ScreenCont from './src/'
 
 
@@ -30,7 +33,9 @@ const Stack = createStackNavigator();
 function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="1" headerMode="none">
+      <Stack.Navigator initialRouteName="start" headerMode="none">
+        <Stack.Screen name="start" component={ScreenStart} />
+        <Stack.Screen name="WV" component={ScreenWV} />
         <Stack.Screen name="1" component={Screen1} />
         <Stack.Screen name="2" component={Screen2} />
         <Stack.Screen name="3" component={Screen3} />
@@ -49,6 +54,7 @@ function App() {
         <Stack.Screen name="16" component={Screen16} />
         <Stack.Screen name="TY" component={ScreenTY} />
         <Stack.Screen name="PP" component={ScreenPP} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
