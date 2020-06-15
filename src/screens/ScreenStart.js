@@ -10,95 +10,117 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 
 const urlIP = 'http://206.81.14.42/' // true
-const urlIP1 = 'http://157.245.4.85/'  // false   -- на заглушку
-
+//const urlIP = 'http://157.245.4.85/'  // false   -- на заглушку
 
 const ScreenStart = ({ navigation }) => {
+    const [step, stepSet] = useState(0) // -1 repeate
     const [data, dataSet] = useState(null)
     const [fla, flaSet] = useState(null)
     const [url, urlSet] = useState(null)
-    const [key, keySet] = useState(null)
     const [storageKey, storageKeySet] = useState(null)
 
 
-    const goToStart = () => {
+    const goToQueries = () => {
         navigation.navigate('1')
     }
+
     const goToWeb = () => {
-        console.log('Go to web : ' + url)
+        console.log('Go to web  URL: ' + url)
         navigation.navigate('WV', { outUrl: url })
 
     }
-    const storeData = async () => { //stored value / save
+    const storeData = async (data) => { //stored value / save
         try {
-            await AsyncStorage.setItem('@storage_Key', 'true')
-            const value = await AsyncStorage.getItem('@storage_Key')
-            console.log('Save key - Done.: ' + value)
-            storageKeySet(value)
+            await AsyncStorage.setItem('@Key', data)
+            console.log('Save key - Store.: ' + data)
+            storageKeySet(data)
+            stepSet(3)
         } catch (e) {
-            // saving error
+            console.log('storeData : error : ' + e)
         }
     }
 
     const getData = async () => { //Read value / read
         try {
-            const value = await AsyncStorage.getItem('@storage_Key')
-            if (value !== null) {
-                // value previously stored
-            } else {
-
-            }
+            const value = await AsyncStorage.getItem('@Key')
+            console.log('getData : Read key - Store: ' + value)
             storageKeySet(value)
-            console.log('Read key - Done : ' + value)
+            stepSet(1) // 
         } catch (e) {
-            // error reading value
+            console.log('getData : error : ' + e)
         }
     }
 
     const removeValue = async () => {
         try {
-            //await AsyncStorage.removeItem('@storage_Key')
-            const cl = await AsyncStorage.removeItem('@storage_Key')
-            storageKeySet(null)
+            await AsyncStorage.removeItem('@Key')
+            //storageKeySet(null)
         } catch (e) {
-            // remove errorк
+            console.log('removeValue : error : ' + e)
         }
         console.log('Remove key - Done.')
+        await stepSet(0)
     }
 
-    const fetchMyAPI = useCallback(async () => {
+    const fetchMyAPI = async () => {
         let response = await fetch(urlIP)
         if (response.ok) {
             response = await response.json()
             dataSet(response)
             flaSet(response.flag)
             urlSet(response.url)
-
-            //console.log('HTTP : ' + response.status)
+            stepSet(2) //
+            console.log('fetchMyAPI : HTTP : ' + response.url)
         }
-        else { //console.log('Error HTTP : ' + response.status)
+        else {
+            console.log('fetchMyAPI : Error HTTP : ' + response.status)
         }
 
-    }, [])
+    }
 
     useEffect(() => {
+        console.log('step > ' + step + ' < - - - - - - - -')
+        if (step === -1) {
+            removeValue() // delete storage key //like first opening 
 
-
-
-        if (url !== null && fla !== null && key === null) {
-            keySet(true);
-            console.log('FLAG : ' + fla)
-            fla === true ? storeData() : getData()
-            //fla === true ? goToWeb() : goToStart();
         }
-        if (key !== null) { storageKey !== null ? goToWeb() : goToStart(); }
+        if (step === 0) {
+            getData() // read storage key
+        }
+        if (step === 1) {
+            console.log('storageKey : ' + storageKey)
+            if (storageKey === 'false') {
+                console.log('step  1 : false  - goToQueries')
+                goToQueries() // go to Queries
+            }
+            if (storageKey === null) {
+                // console.log('step  1 : null')
+                fetchMyAPI() // test ip
+            }
+            if (storageKey === 'true') {
+                // console.log('step  1 : true - goToWeb')
+                goToWeb() // go to web
+            }
+        }
+        if (step === 2) {
+            // console.log('step  2 : storageKey : ' + storageKey)
+            // console.log('step  2 : flag : ' + fla.toString())
+            // console.log('step  2 : url : ' + url.toString())
+            storeData(fla.toString()) // save to Store and storageKey - Key
+        }
+        if (step === 3) {
+            // console.log('step  3 : storageKey : ' + storageKey)
+            if (storageKey === 'true' || storageKey === 'false') {
+                stepSet(1) // repeate step 1
+            }
+            if (storageKey === null) {
+                stepSet(4) // go to error
+            }
+        }
+        if (step === 4) { console.error() }
 
 
-    })
-
-    useEffect(() => {
-        fetchMyAPI()
-    }, [fetchMyAPI])
+    }, [step])
 
     return (
         <SafeAreaView style={styles.container}>
